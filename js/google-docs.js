@@ -113,11 +113,17 @@ export async function createGoogleDoc(title, contractText, appendixText) {
 function buildDocumentRequests(contractText, appendixText) {
     const requests = [];
 
-    // Combine contract and appendix separated by a single blank line (page break applied below)
+    // Append extra blank line after appendix title for spacing
+    const appendixWithSpacing = appendixText.replace(
+        /^(【別紙】本件業務の詳細\n)/,
+        "$1\n"
+    );
+
     const separator = "\n\n";
-    const fullText = contractText + separator + appendixText;
+    const fullText = contractText + separator + appendixWithSpacing;
     const appendixStart = contractText.length + separator.length;
 
+    // 1. Insert all text
     requests.push({
         insertText: {
             location: { index: 1 },
@@ -125,16 +131,25 @@ function buildDocumentRequests(contractText, appendixText) {
         },
     });
 
-    // ── Contract title ──────────────────────────────────────────
+    // 2. Base font size first — subsequent requests override specific ranges
+    requests.push({
+        updateTextStyle: {
+            range: { startIndex: 1, endIndex: fullText.length + 1 },
+            textStyle: { fontSize: { magnitude: 10.5, unit: "PT" } },
+            fields: "fontSize",
+        },
+    });
+
+    // 3. Contract title — centered, 12.5pt, bold
     const titleEnd = fullText.indexOf("\n");
     if (titleEnd > 0) {
         requests.push({
             updateParagraphStyle: {
-                range: { startIndex: 1, endIndex: titleEnd + 1 },
+                range: { startIndex: 1, endIndex: titleEnd + 2 },
                 paragraphStyle: {
                     alignment: "CENTER",
-                    spaceAbove: { magnitude: 24, unit: "PT" },
-                    spaceBelow: { magnitude: 24, unit: "PT" },
+                    spaceAbove: { magnitude: 20, unit: "PT" },
+                    spaceBelow: { magnitude: 20, unit: "PT" },
                 },
                 fields: "alignment,spaceAbove,spaceBelow",
             },
@@ -142,13 +157,13 @@ function buildDocumentRequests(contractText, appendixText) {
         requests.push({
             updateTextStyle: {
                 range: { startIndex: 1, endIndex: titleEnd + 1 },
-                textStyle: { bold: true, fontSize: { magnitude: 16, unit: "PT" } },
+                textStyle: { bold: true, fontSize: { magnitude: 12.5, unit: "PT" } },
                 fields: "bold,fontSize",
             },
         });
     }
 
-    // ── Contract section headers (第X条) ────────────────────────
+    // 4. Contract section headers (第X条)
     const sectionRegex = /第\d+条（[^）]+）/g;
     let match;
     while ((match = sectionRegex.exec(contractText)) !== null) {
@@ -163,19 +178,20 @@ function buildDocumentRequests(contractText, appendixText) {
         });
     }
 
-    // ── Appendix: page break before title ───────────────────────
-    const appendixTitleEnd = appendixStart + appendixText.indexOf("\n");
+    // 5. Appendix title — pageBreakBefore, centered, 12.5pt, bold
+    //    endIndex must reach past the paragraph's terminal \n for pageBreakBefore to apply
+    const appendixTitleEnd = appendixStart + appendixWithSpacing.indexOf("\n");
     requests.push({
         updateParagraphStyle: {
             range: {
                 startIndex: appendixStart + 1,
-                endIndex: appendixTitleEnd + 1,
+                endIndex: appendixTitleEnd + 2, // +2 to include the terminal \n
             },
             paragraphStyle: {
                 pageBreakBefore: true,
                 alignment: "CENTER",
-                spaceAbove: { magnitude: 24, unit: "PT" },
-                spaceBelow: { magnitude: 24, unit: "PT" },
+                spaceAbove: { magnitude: 20, unit: "PT" },
+                spaceBelow: { magnitude: 20, unit: "PT" },
             },
             fields: "pageBreakBefore,alignment,spaceAbove,spaceBelow",
         },
@@ -183,20 +199,20 @@ function buildDocumentRequests(contractText, appendixText) {
     requests.push({
         updateTextStyle: {
             range: { startIndex: appendixStart + 1, endIndex: appendixTitleEnd + 1 },
-            textStyle: { bold: true, fontSize: { magnitude: 16, unit: "PT" } },
+            textStyle: { bold: true, fontSize: { magnitude: 12.5, unit: "PT" } },
             fields: "bold,fontSize",
         },
     });
 
-    // ── Appendix major headings (１．〜１４．) ──────────────────
+    // 6. Appendix major headings (１．〜１４．)
     const appendixMajorRegex = /^(１０|１１|１２|１３|１４|[１-９])[．.].+/gm;
-    while ((match = appendixMajorRegex.exec(appendixText)) !== null) {
+    while ((match = appendixMajorRegex.exec(appendixWithSpacing)) !== null) {
         const startIdx = appendixStart + match.index + 1;
-        const lineEnd = appendixText.indexOf("\n", match.index);
-        const endIdx = appendixStart + (lineEnd === -1 ? appendixText.length : lineEnd) + 1;
+        const lineEnd = appendixWithSpacing.indexOf("\n", match.index);
+        const endIdx = appendixStart + (lineEnd === -1 ? appendixWithSpacing.length : lineEnd) + 2;
         requests.push({
             updateTextStyle: {
-                range: { startIndex: startIdx, endIndex: endIdx },
+                range: { startIndex: startIdx, endIndex: endIdx - 1 },
                 textStyle: { bold: true },
                 fields: "bold",
             },
@@ -212,15 +228,6 @@ function buildDocumentRequests(contractText, appendixText) {
             },
         });
     }
-
-    // ── Base font size for entire document ──────────────────────
-    requests.push({
-        updateTextStyle: {
-            range: { startIndex: 1, endIndex: fullText.length + 1 },
-            textStyle: { fontSize: { magnitude: 10.5, unit: "PT" } },
-            fields: "fontSize",
-        },
-    });
 
     return requests;
 }
