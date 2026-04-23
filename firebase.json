@@ -1,0 +1,16 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**", "**/*.docx", "**/*.txt", "README.md"],
+    "headers": [
+      {
+        "source": "**/*.js",
+        "headers": [{ "key": "Content-Type", "value": "application/javascript; charset=utf-8" }]
+      },
+      {
+        "source": "js/app.js",
+        "headers": [{ "key": "Cache-Control", "value": "no-cache, max-age=0" }]
+      }
+    ]
+  }
+}

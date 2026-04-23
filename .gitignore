@@ -1,0 +1,10 @@
+.DS_Store
+~$*.docx
+*.log
+.env
+.env.*
+!.env.example
+node_modules/
+.firebase/
+pglite-debug.log
+*.local

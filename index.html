@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>開発委託契約書ジェネレーター | AIdeaLab</title>
+  <meta name="description" content="開発委託契約書のテンプレートにフォームで入力し、Google Docsにドラフトを出力するツール">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo">
+        <div class="logo-icon">📝</div>
+        <h1>開発委託契約書ジェネレーター</h1>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary" id="btn-download-text">
+          <span class="btn-icon">💾</span> テキスト保存
+        </button>
+        <button class="btn btn-success" id="btn-export-docs">
+          <span class="btn-icon">📤</span> Google Docs に出力
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Left: Form Panel -->
+      <aside class="form-panel" id="form-container">
+        <!-- Form fields are dynamically generated -->
+      </aside>
+
+      <!-- Right: Preview Panel -->
+      <main class="preview-panel">
+        <div class="preview-toolbar" id="preview-toolbar">
+          <!-- Tabs are dynamically generated -->
+        </div>
+        <div id="preview-container">
+          <!-- Preview content is dynamically generated -->
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- ?v= をデプロイ時に増やすとキャッシュを無効化できます -->
+  <script type="module" src="js/app.js?v=4"></script>
+</body>
+</html>
