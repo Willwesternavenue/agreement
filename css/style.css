@@ -432,25 +432,17 @@ body {
   margin-bottom: 0.5rem;
 }
 
-/* 別紙プレビュー */
-.document-preview.appendix-preview {
-  padding: 3rem 3rem 4rem;
-}
-
-.document-preview.appendix-preview h2 {
-  margin-bottom: 2rem;
-}
-
+/* 別紙プレビュー — 本契約書と同一の余白・フォントを継承し、大見出しのみ追加スタイル */
 .document-preview.appendix-preview .appendix-gap {
-  height: 0.85rem;
+  height: 0.5rem;
 }
 
 .document-preview.appendix-preview .appendix-major {
   font-weight: 700;
-  font-size: 1.05rem;
-  margin-top: 1.75rem;
-  margin-bottom: 0.65rem;
-  padding-bottom: 0.35rem;
+  font-size: 1rem;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  padding-bottom: 0.3em;
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
   letter-spacing: 0.02em;
 }
@@ -461,22 +453,21 @@ body {
 
 .document-preview.appendix-preview .appendix-sub {
   font-weight: 600;
-  font-size: 0.98rem;
-  margin-top: 1rem;
-  margin-bottom: 0.35rem;
+  margin-top: 0.85em;
+  margin-bottom: 0.3em;
   color: #262626;
 }
 
 .document-preview.appendix-preview .appendix-body {
-  margin: 0 0 0.45rem;
-  line-height: 1.85;
+  margin: 0 0 0.4em;
+  padding-left: 1em;
+  line-height: 2;
 }
 
 .document-preview.appendix-preview .appendix-note {
   margin-top: 0.75rem;
   margin-bottom: 0.5rem;
-  padding: 0.65rem 0.85rem;
-  padding-left: 1.25rem;
+  padding: 0.6rem 0.85rem 0.6rem 1.1rem;
   background: #f7f6ff;
   border-left: 3px solid var(--accent);
   font-size: 0.92rem;

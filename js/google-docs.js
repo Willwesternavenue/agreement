@@ -113,10 +113,11 @@ export async function createGoogleDoc(title, contractText, appendixText) {
 function buildDocumentRequests(contractText, appendixText) {
     const requests = [];
 
-    // Combine contract and appendix with a page break between them
-    const fullText = contractText + "\n\n" + "─".repeat(40) + "\n\n" + appendixText;
+    // Combine contract and appendix separated by a single blank line (page break applied below)
+    const separator = "\n\n";
+    const fullText = contractText + separator + appendixText;
+    const appendixStart = contractText.length + separator.length;
 
-    // Insert the full text first
     requests.push({
         insertText: {
             location: { index: 1 },
@@ -124,10 +125,9 @@ function buildDocumentRequests(contractText, appendixText) {
         },
     });
 
-    // Find and style the title
+    // ── Contract title ──────────────────────────────────────────
     const titleEnd = fullText.indexOf("\n");
     if (titleEnd > 0) {
-        // Center-align title
         requests.push({
             updateParagraphStyle: {
                 range: { startIndex: 1, endIndex: titleEnd + 1 },
@@ -139,24 +139,19 @@ function buildDocumentRequests(contractText, appendixText) {
                 fields: "alignment,spaceAbove,spaceBelow",
             },
         });
-
-        // Bold and larger font for title
         requests.push({
             updateTextStyle: {
                 range: { startIndex: 1, endIndex: titleEnd + 1 },
-                textStyle: {
-                    bold: true,
-                    fontSize: { magnitude: 16, unit: "PT" },
-                },
+                textStyle: { bold: true, fontSize: { magnitude: 16, unit: "PT" } },
                 fields: "bold,fontSize",
             },
         });
     }
 
-    // Style section headers (第X条)
+    // ── Contract section headers (第X条) ────────────────────────
     const sectionRegex = /第\d+条（[^）]+）/g;
     let match;
-    while ((match = sectionRegex.exec(fullText)) !== null) {
+    while ((match = sectionRegex.exec(contractText)) !== null) {
         const startIdx = match.index + 1;
         const endIdx = startIdx + match[0].length;
         requests.push({
@@ -168,13 +163,61 @@ function buildDocumentRequests(contractText, appendixText) {
         });
     }
 
-    // Set the whole document font size only (font family causes "Unknown name fontFamily" in some API versions)
+    // ── Appendix: page break before title ───────────────────────
+    const appendixTitleEnd = appendixStart + appendixText.indexOf("\n");
+    requests.push({
+        updateParagraphStyle: {
+            range: {
+                startIndex: appendixStart + 1,
+                endIndex: appendixTitleEnd + 1,
+            },
+            paragraphStyle: {
+                pageBreakBefore: true,
+                alignment: "CENTER",
+                spaceAbove: { magnitude: 24, unit: "PT" },
+                spaceBelow: { magnitude: 24, unit: "PT" },
+            },
+            fields: "pageBreakBefore,alignment,spaceAbove,spaceBelow",
+        },
+    });
+    requests.push({
+        updateTextStyle: {
+            range: { startIndex: appendixStart + 1, endIndex: appendixTitleEnd + 1 },
+            textStyle: { bold: true, fontSize: { magnitude: 16, unit: "PT" } },
+            fields: "bold,fontSize",
+        },
+    });
+
+    // ── Appendix major headings (１．〜１４．) ──────────────────
+    const appendixMajorRegex = /^(１０|１１|１２|１３|１４|[１-９])[．.].+/gm;
+    while ((match = appendixMajorRegex.exec(appendixText)) !== null) {
+        const startIdx = appendixStart + match.index + 1;
+        const lineEnd = appendixText.indexOf("\n", match.index);
+        const endIdx = appendixStart + (lineEnd === -1 ? appendixText.length : lineEnd) + 1;
+        requests.push({
+            updateTextStyle: {
+                range: { startIndex: startIdx, endIndex: endIdx },
+                textStyle: { bold: true },
+                fields: "bold",
+            },
+        });
+        requests.push({
+            updateParagraphStyle: {
+                range: { startIndex: startIdx, endIndex: endIdx },
+                paragraphStyle: {
+                    spaceAbove: { magnitude: 10, unit: "PT" },
+                    spaceBelow: { magnitude: 4, unit: "PT" },
+                },
+                fields: "spaceAbove,spaceBelow",
+            },
+        });
+    }
+
+    // ── Base font size for entire document ──────────────────────
     requests.push({
         updateTextStyle: {
             range: { startIndex: 1, endIndex: fullText.length + 1 },
-            textStyle: {
-                fontSize: { magnitude: 10.5, unit: "PT" },
-            },
+            textStyle: { fontSize: { magnitude: 10.5, unit: "PT" } },
             fields: "fontSize",
         },
     });
