@@ -1,13 +1,26 @@
 // Preview panel - renders the contract with filled-in values
-import { CONTRACT_TEMPLATE, APPENDIX_TEMPLATE } from "./template.js";
+import {
+    CONTRACT_TEMPLATE,
+    APPENDIX_TEMPLATE,
+    TEMPLATE_FIELDS,
+    APPENDIX_FIELDS,
+} from "./template.js";
 
 let currentTab = "contract";
+let diffMode = false;
+
+// 変数ID → フォームのラベル（差分表示で「元テンプレートの空欄」を表す見出しに使う）
+const FIELD_LABELS = {};
+[...TEMPLATE_FIELDS, ...APPENDIX_FIELDS].forEach((f) => {
+    FIELD_LABELS[f.id] = f.label;
+});
 
 export function initPreview(container, toolbar) {
     // Set up toolbar tabs
     toolbar.innerHTML = `
     <button class="tab active" data-tab="contract">📄 契約書本文</button>
     <button class="tab" data-tab="appendix">📎 別紙</button>
+    <button class="diff-toggle" id="diff-toggle" title="元テンプレートとの差分（レッドライン）を表示">🔍 差分表示</button>
   `;
 
     toolbar.querySelectorAll(".tab").forEach((tab) => {
@@ -20,13 +33,29 @@ export function initPreview(container, toolbar) {
             document.dispatchEvent(event);
         });
     });
+
+    const diffToggle = toolbar.querySelector("#diff-toggle");
+    diffToggle.addEventListener("click", () => {
+        diffMode = !diffMode;
+        diffToggle.classList.toggle("active", diffMode);
+        document.dispatchEvent(new CustomEvent("tabchange"));
+    });
 }
 
 export function renderPreview(container, data) {
     const template = currentTab === "contract" ? CONTRACT_TEMPLATE : APPENDIX_TEMPLATE;
-    const rendered = renderTemplate(template, data);
+    const rendered = diffMode
+        ? renderTemplateDiff(template, data)
+        : renderTemplate(template, data);
     const appendixClass = currentTab === "appendix" ? " appendix-preview" : "";
-    container.innerHTML = `<div class="document-preview${appendixClass}">${formatDocument(rendered, currentTab)}</div>`;
+    const diffClass = diffMode ? " diff-mode" : "";
+    const legend = diffMode
+        ? `<div class="diff-legend">
+             <span class="diff-legend-item"><span class="diff-del">元テンプレート</span> 差し替え前（空欄）</span>
+             <span class="diff-legend-item"><span class="diff-ins">入力値</span> 差し替え後</span>
+           </div>`
+        : "";
+    container.innerHTML = `${legend}<div class="document-preview${appendixClass}${diffClass}">${formatDocument(rendered, currentTab)}</div>`;
 }
 
 function renderTemplate(template, data) {
@@ -37,6 +66,22 @@ function renderTemplate(template, data) {
         } else {
             return `<span class="placeholder">【未入力】</span>`;
         }
+    });
+}
+
+/**
+ * 差分（レッドライン）表示：各プレースホルダを
+ * 「元テンプレートの空欄（ラベル）を削除 → 入力値を追加」の redline で描画する。
+ */
+function renderTemplateDiff(template, data) {
+    return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+        const label = FIELD_LABELS[key] || key;
+        const del = `<del class="diff-del">【${escapeHtml(label)}】</del>`;
+        const value = data[key];
+        if (value && value.trim() !== "") {
+            return `${del}<ins class="diff-ins">${escapeHtml(value)}</ins>`;
+        }
+        return `${del}<ins class="diff-ins diff-empty">（未入力）</ins>`;
     });
 }
 

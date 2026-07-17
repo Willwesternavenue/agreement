@@ -355,6 +355,57 @@ body {
   background: var(--bg-hover);
 }
 
+/* 差分表示トグル（右寄せ） */
+.preview-toolbar .diff-toggle {
+  margin-left: auto;
+  padding: 0.5rem 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.preview-toolbar .diff-toggle:hover:not(.active) {
+  background: var(--bg-hover);
+}
+
+.preview-toolbar .diff-toggle.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+/* 差分表示の凡例 */
+.diff-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 800px;
+  margin-bottom: 1rem;
+  padding: 0.6rem 0.9rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.diff-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.diff-legend .diff-del,
+.diff-legend .diff-ins {
+  font-size: 0.72rem;
+}
+
 .document-preview {
   background: #ffffff;
   color: #1a1a1a;
@@ -411,6 +462,34 @@ body {
   font-weight: 600;
   border-bottom: 2px solid var(--accent);
   padding-bottom: 1px;
+}
+
+/* ===== 差分（レッドライン）表示 ===== */
+.document-preview .diff-del {
+  color: #b3261e;
+  background: #fdecec;
+  text-decoration: line-through;
+  text-decoration-color: #b3261e;
+  padding: 0.02em 0.3em;
+  border-radius: 3px;
+  margin-right: 0.15em;
+  font-size: 0.9em;
+}
+
+.document-preview .diff-ins {
+  color: #146c2e;
+  background: #e6f4ea;
+  text-decoration: none;
+  padding: 0.02em 0.3em;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+.document-preview .diff-ins.diff-empty {
+  color: #856404;
+  background: #fff3cd;
+  font-weight: 500;
+  font-style: italic;
 }
 
 .document-preview .signature-block {
